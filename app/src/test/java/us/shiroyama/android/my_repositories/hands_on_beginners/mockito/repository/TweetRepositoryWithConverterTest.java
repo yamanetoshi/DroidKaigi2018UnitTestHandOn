@@ -1,9 +1,14 @@
 package us.shiroyama.android.my_repositories.hands_on_beginners.mockito.repository;
 
+import android.support.annotation.NonNull;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.mockito.verification.VerificationMode;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import us.shiroyama.android.my_repositories.hands_on_beginners.mockito.converter.TweetConverter;
 import us.shiroyama.android.my_repositories.hands_on_beginners.mockito.entity.Tweet;
@@ -26,12 +31,27 @@ public class TweetRepositoryWithConverterTest {
   private TweetConverter converter;
   private TweetRepositoryWithConverter repository;
 
+  private LocalTweetDataSource spy;
+
   /**
    * {@link Mockito#spy(Object)} を使ってテストスパイを作ってみよう。
    * テストスパイは {@link Mockito#verify(Object)} を使うことで、メソッド呼び出し等のインタラクションを検証することができる。
    */
   @Before
   public void setUp() throws Exception {
+    converter = spy(new TweetConverter());
+
+    spy = spy(new LocalTweetDataSource() {
+      @NonNull
+      @Override
+      public List<Tweet> getTimeline() {
+        ArrayList<Tweet> ret = new ArrayList<Tweet>();
+        ret.add(Tweet.bodyOf("tmp"));
+        return ret;
+      }
+    });
+
+    repository = new TweetRepositoryWithConverter(spy, converter);
   }
 
   /**
@@ -42,6 +62,8 @@ public class TweetRepositoryWithConverterTest {
    */
   @Test
   public void getTimeline() throws Exception {
+    repository.getTimeline();
+    verify(converter, never()).convertList(null);
   }
 
   /**
@@ -51,6 +73,8 @@ public class TweetRepositoryWithConverterTest {
    */
   @Test
   public void getTimelineBody() throws Exception {
+    repository.getTimelineBody();
+    verify(converter, times(1)).convertList(spy.getTimeline());
   }
 
 }

@@ -32,7 +32,7 @@ public class AsyncFetcherTest {
   @Before
   public void setUp() throws Exception {
     fetcher = spy(new Fetcher.StringFetcher());
-    asyncFetcher = new AsyncFetcher<>(fetcher);
+    asyncFetcher = new AsyncFetcher<String>(fetcher);
     latch = new CountDownLatch(1);
   }
 
@@ -43,6 +43,12 @@ public class AsyncFetcherTest {
    */
   @Test
   public void fetch_success() throws Exception {
+    asyncFetcher.fetch(result -> {
+      assertThat(result).isEqualTo("OK");
+      latch.countDown();
+            },
+            e -> {});
+    latch.await();
   }
 
   /**
@@ -53,6 +59,13 @@ public class AsyncFetcherTest {
    */
   @Test
   public void fetch_failure() throws Exception {
+    doThrow(new RuntimeException("NG")).when(fetcher).fetch();
+    asyncFetcher.fetch(result -> {},
+            e -> {
+              assertThat(e.getMessage()).isEqualTo("NG");
+              latch.countDown();
+            });
+    latch.await();
   }
 
   private void log(@NonNull String msg) {

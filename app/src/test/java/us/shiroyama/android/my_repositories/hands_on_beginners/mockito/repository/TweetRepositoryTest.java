@@ -4,6 +4,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -21,6 +22,9 @@ import static org.mockito.Mockito.when;
 
 public class TweetRepositoryTest {
   private TweetRepository tweetRepository;
+  private List<Tweet> tweetList;
+  private String str1 = "Alice";
+  private String str2 = "Bob";
 
   /**
    * {@link TweetRepository} は {@link LocalTweetDataSource} に依存している。
@@ -30,6 +34,16 @@ public class TweetRepositoryTest {
    */
   @Before
   public void setUp() throws Exception {
+    LocalTweetDataSource mock = mock(LocalTweetDataSource.class);
+
+    tweetRepository = new TweetRepository(mock);
+
+    tweetList = new ArrayList<Tweet>();
+
+    tweetList.add(Tweet.bodyOf(str1));
+    tweetList.add(Tweet.bodyOf(str2));
+
+    when(mock.getTimeline()).thenReturn(tweetList);
   }
 
   /**
@@ -38,6 +52,13 @@ public class TweetRepositoryTest {
    */
   @Test
   public void getTimeline() throws Exception {
+    assertThat(tweetRepository.getTimeline()).isNotEmpty();
+    assertThat(tweetRepository.getTimeline()).hasSize(tweetList.size());
+
+    Tweet tw1 = Tweet.bodyOf(str1);
+    Tweet tw2 = Tweet.bodyOf(str2);
+
+    assertThat(tweetRepository.getTimeline()).containsExactly(tw1, tw2);
   }
 
 }

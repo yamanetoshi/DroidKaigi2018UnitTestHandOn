@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * ヒント: {@link Robolectric} を使うとAndroidフレームワークのコードをLocal Unit Testで模すことができます。
  * ヒント: クラスを<code>@RunWith(RobolectricTestRunner.class)</code>アノテーションで修飾すると {@link Robolectric} を使うことができます。
  */
+@RunWith(RobolectricTestRunner.class)
 public class BetterInputCheckerTest {
   private BetterInputChecker inputChecker;
 
@@ -36,6 +37,7 @@ public class BetterInputCheckerTest {
   @Test
   public void isValid() throws Exception {
     String input = "srym";
+    assertThat(inputChecker.isValid(input)).isEqualTo(true);
   }
 
   /**
@@ -46,6 +48,7 @@ public class BetterInputCheckerTest {
   @Test
   public void isValid_inputIllegalCharacters_resultsFalse() throws Exception {
     String input = "abc$";
+    assertThat(inputChecker.isValid(input)).isEqualTo(false);
   }
 
   /**
@@ -56,6 +59,7 @@ public class BetterInputCheckerTest {
   @Test
   public void isValid_inputLessThan4_resultsFalse() throws Exception {
     String input = "abc";
+    assertThat(inputChecker.isValid(input)).isEqualTo(false);
   }
 
   /**
@@ -65,9 +69,10 @@ public class BetterInputCheckerTest {
    * <p>
    * ヒント: <code>@Test(expected = 例外.class)</code>
    */
-  @Test
+  @Test(expected = IllegalArgumentException.class)
   public void isValid_inputNull_resultsIllegalArgumentException() throws Exception {
     String input = null;
+    inputChecker.isValid(input);
   }
 
   /**
@@ -77,9 +82,10 @@ public class BetterInputCheckerTest {
    * <p>
    * ヒント: <code>@Test(expected = 例外.class)</code>
    */
-  @Test
+  @Test(expected = IllegalArgumentException.class)
   public void isValid_inputBlank_resultsIllegalArgumentException() throws Exception {
     String input = "";
+    inputChecker.isValid(input);
   }
 
 }

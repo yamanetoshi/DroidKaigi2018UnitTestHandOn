@@ -3,6 +3,7 @@ package us.shiroyama.android.my_repositories.hands_on_beginners.mockito.converte
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -30,6 +31,8 @@ public class TweetConverterTest {
    */
   @Test
   public void convert() throws Exception {
+    String str = "Alice";
+    assertThat(converter.convert(Tweet.bodyOf(str))).isEqualTo(str);
   }
 
   /**
@@ -37,6 +40,7 @@ public class TweetConverterTest {
    */
   @Test
   public void convert_inputEmpty_returnsEmpty() throws Exception {
+    assertThat(converter.convert(Tweet.bodyOf(""))).isEqualTo("");
   }
 
   /**
@@ -46,6 +50,16 @@ public class TweetConverterTest {
    */
   @Test
   public void convertList() throws Exception {
+    String str1 = "Alice";
+    String str2 = "Bob";
+
+    List<Tweet> tweetList = new ArrayList<Tweet>();
+    tweetList.add(Tweet.bodyOf(str1));
+    tweetList.add(Tweet.bodyOf(str2));
+
+    assertThat(converter.convertList(tweetList)).isNotEmpty();
+    assertThat(converter.convertList(tweetList)).hasSize(tweetList.size());
+    assertThat(converter.convertList(tweetList)).containsExactly(str1, str2);
   }
 
   /**
@@ -53,6 +67,9 @@ public class TweetConverterTest {
    */
   @Test
   public void convertList_inputEmptyList_returnsEmptyList() throws Exception {
+    List<Tweet> tweetList = new ArrayList<Tweet>();
+
+    assertThat(converter.convertList(tweetList)).isEmpty();
   }
 
 }
