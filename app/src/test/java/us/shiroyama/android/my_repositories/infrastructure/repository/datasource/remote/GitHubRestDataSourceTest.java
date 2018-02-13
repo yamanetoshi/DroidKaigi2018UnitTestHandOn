@@ -2,6 +2,9 @@ package us.shiroyama.android.my_repositories.infrastructure.repository.datasourc
 
 import android.support.annotation.NonNull;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+import org.json.JSONTokener;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -84,6 +87,9 @@ public class GitHubRestDataSourceTest {
    */
   @Test
   public void getUserRepositories_inputSrym_returnsSuccessfulResults() throws Exception {
+    List<RepositoryEntity> ret = gitHubRestDataSource.getUserRepositories("srym");
+    assertThat(ret).isNotEmpty();
+    assertThat(ret.get(0).getName()).isEqualTo(("dotfiles"));
   }
 
   /**
@@ -93,13 +99,17 @@ public class GitHubRestDataSourceTest {
    */
   @Test
   public void getUserRepositories_inputYmnder_returnsSuccessfulResults() throws Exception {
+    List<RepositoryEntity> ret = gitHubRestDataSource.getUserRepositories("ymnder");
+    assertThat(ret).isNotEmpty();
+    assertThat(ret.get(0).getName()).isEqualTo(("conference-app-2018"));
   }
 
   /**
    * 未定義のユーザでリクエストした場合に {@link ApiException} が上がることを検証しよう。
    */
-  @Test
+  @Test(expected = ApiException.class)
   public void getUserRepositories_inputInvalidAccount_causedApiException() throws Exception {
+    gitHubRestDataSource.getUserRepositories("xxx");
   }
 
   /**
