@@ -14,8 +14,10 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import us.shiroyama.android.my_repositories.infrastructure.entity.RepositoryEntity;
 import us.shiroyama.android.my_repositories.infrastructure.repository.datasource.local.room.db.AppDatabase;
 import us.shiroyama.android.my_repositories.infrastructure.repository.datasource.local.room.db.DatabaseProvider;
+import us.shiroyama.android.my_repositories.infrastructure.repository.datasource.local.room.entity.RepoWithAccount;
 import us.shiroyama.android.my_repositories.infrastructure.repository.datasource.local.room.entity.RoomAccountEntity;
 import us.shiroyama.android.my_repositories.infrastructure.repository.datasource.local.room.entity.RoomRepositoryEntity;
 
@@ -104,6 +106,15 @@ public class RoomRepositoryDaoTest {
    */
   @Test
   public void getAll() throws Exception {
+    RoomRepositoryDao roomRepositoryDao = db.repositoryDao();
+    List<RoomRepositoryEntity> repositorylist = roomRepositoryDao.getAll();
+    assertThat(repositorylist.isEmpty());
+
+    roomRepositoryDao.insertAllRepositories(repositoriesSrym.toArray(new RoomRepositoryEntity[repositoriesSrym.size()]));
+    assertThat(roomRepositoryDao.getAll()).isNotEmpty().hasSize(2);
+
+    roomRepositoryDao.insertAllRepositories(repositoriesYmnder.toArray(new RoomRepositoryEntity[repositoriesYmnder.size()]));
+    assertThat(roomRepositoryDao.getAll()).isNotEmpty().hasSize(4);
   }
 
   /**
@@ -111,6 +122,12 @@ public class RoomRepositoryDaoTest {
    */
   @Test
   public void findByAccountId() throws Exception {
+    RoomRepositoryDao roomRepositoryDao = db.repositoryDao();
+    roomRepositoryDao.insertAllRepositories(repositoriesYmnder.toArray(new RoomRepositoryEntity[repositoriesYmnder.size()]));
+    roomRepositoryDao.insertAllRepositories(repositoriesSrym.toArray(new RoomRepositoryEntity[repositoriesSrym.size()]));
+
+    assertThat(roomRepositoryDao.findByAccountId(srym.getId())).isNotEmpty().hasSize(2);
+    assertThat(roomRepositoryDao.findByAccountId(ymnder.getId())).isNotEmpty().hasSize(2);
   }
 
   /**
@@ -118,6 +135,17 @@ public class RoomRepositoryDaoTest {
    */
   @Test
   public void findByAccount() throws Exception {
+    RoomRepositoryDao roomRepositoryDao = db.repositoryDao();
+    roomRepositoryDao.insertAllRepositories(repositoriesYmnder.toArray(new RoomRepositoryEntity[repositoriesYmnder.size()]));
+    roomRepositoryDao.insertAllRepositories(repositoriesSrym.toArray(new RoomRepositoryEntity[repositoriesSrym.size()]));
+
+    assertThat(roomRepositoryDao.findByAccount(srym.getLogin())).isEmpty();
+    assertThat(roomRepositoryDao.findByAccount(ymnder.getLogin())).isEmpty();
+
+    roomRepositoryDao.insertAllAccounts(srym, ymnder);
+
+    assertThat(roomRepositoryDao.findByAccount(srym.getLogin())).isNotEmpty().hasSize(2);
+    assertThat(roomRepositoryDao.findByAccount(ymnder.getLogin())).isNotEmpty().hasSize(2);
   }
 
   /**
@@ -125,6 +153,15 @@ public class RoomRepositoryDaoTest {
    */
   @Test
   public void insertAllRepositories() throws Exception {
+    RoomRepositoryDao roomRepositoryDao = db.repositoryDao();
+    List<RoomRepositoryEntity> repositorylist = roomRepositoryDao.getAll();
+    assertThat(repositorylist.isEmpty());
+
+    roomRepositoryDao.insertAllRepositories(repositoriesSrym.toArray(new RoomRepositoryEntity[repositoriesSrym.size()]));
+    assertThat(roomRepositoryDao.getAll()).isNotEmpty().hasSize(2);
+
+    roomRepositoryDao.insertAllRepositories(repositoriesYmnder.toArray(new RoomRepositoryEntity[repositoriesYmnder.size()]));
+    assertThat(roomRepositoryDao.getAll()).isNotEmpty().hasSize(4);
   }
 
   /**
@@ -132,6 +169,17 @@ public class RoomRepositoryDaoTest {
    */
   @Test
   public void deleteAllRepositories() throws Exception {
+    RoomRepositoryDao roomRepositoryDao = db.repositoryDao();
+    roomRepositoryDao.insertAllRepositories(repositoriesSrym.toArray(new RoomRepositoryEntity[repositoriesSrym.size()]));
+    roomRepositoryDao.insertAllRepositories(repositoriesYmnder.toArray(new RoomRepositoryEntity[repositoriesYmnder.size()]));
+
+    assertThat(roomRepositoryDao.getAll()).isNotEmpty().hasSize(4);
+
+    roomRepositoryDao.deleteAllRepositories(repositoriesSrym.toArray(new RoomRepositoryEntity[repositoriesSrym.size()]));
+    assertThat(roomRepositoryDao.getAll()).isNotEmpty().hasSize(2);
+
+    roomRepositoryDao.deleteAllRepositories(repositoriesYmnder.toArray(new RoomRepositoryEntity[repositoriesYmnder.size()]));
+    assertThat(roomRepositoryDao.getAll()).isEmpty();
   }
 
   /**
@@ -139,6 +187,11 @@ public class RoomRepositoryDaoTest {
    */
   @Test
   public void insertAllAccounts() throws Exception {
+    RoomAccountDao roomAccountDao = db.accountDao();
+    assertThat(roomAccountDao.getAll()).isEmpty();
+
+    roomAccountDao.insertAll(srym, ymnder);
+    assertThat(roomAccountDao.getAll()).isNotEmpty().hasSize(2);
   }
 
   /**
@@ -146,6 +199,17 @@ public class RoomRepositoryDaoTest {
    */
   @Test
   public void insertRepositoriesAndAccounts() throws Exception {
+    RoomAccountDao roomAccountDao = db.accountDao();
+    RoomRepositoryDao roomRepositoryDao = db.repositoryDao();
+
+    List<RoomAccountEntity> list = Arrays.asList(srym);
+
+    assertThat(roomAccountDao.getAll()).isEmpty();
+    assertThat(roomRepositoryDao.getAll()).isEmpty();
+
+    roomRepositoryDao.insertRepositoriesAndAccounts(repositoriesSrym, list);
+
+    assertThat(roomRepositoryDao.findByAccount(srym.getLogin())).isNotEmpty().hasSize(2);
   }
 
   /**
@@ -153,6 +217,23 @@ public class RoomRepositoryDaoTest {
    */
   @Test
   public void deleteAndInsertRepositoriesAndAccounts() throws Exception {
+    RoomRepositoryDao roomRepositoryDao = db.repositoryDao();
+    RoomAccountDao accountDao = db.accountDao();
+    roomRepositoryDao.insertRepositoriesAndAccounts(repositoriesSrym, Collections.singletonList(srym));
+    assertThat(roomRepositoryDao.getAll())
+            .isNotEmpty()
+            .hasSize(2);
+    assertThat(accountDao.getAll())
+            .isNotEmpty()
+            .hasSize(1);
+
+    roomRepositoryDao.deleteAndInsertRepositoriesAndAccounts("srym", Collections.singletonList(repositoriesSrym.get(0)), Collections.singletonList(srym));
+    assertThat(roomRepositoryDao.getAll())
+            .isNotEmpty()
+            .hasSize(1);
+    assertThat(accountDao.getAll())
+            .isNotEmpty()
+            .hasSize(1);
   }
 
 }
