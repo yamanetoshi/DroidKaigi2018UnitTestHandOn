@@ -43,6 +43,14 @@ public class RepoListPresenterTest {
    */
   @Before
   public void setUp() throws Exception {
+    view = mock(RepoListContract.View.class);
+    getRepositories = mock(GetRepositories.class);
+    mapper = spy(RepoViewModelMapper.class);
+    ticket = mock(TaskTicket.class);
+    when(getRepositories.enqueue(any(GetRepositories.Param.class))).thenReturn(ticket);
+
+    presenter = new RepoListPresenter(getRepositories, mapper);
+    presenter.setView(view);
   }
 
   /**
@@ -52,6 +60,11 @@ public class RepoListPresenterTest {
    */
   @Test
   public void getRepositoryList() throws Exception {
+    assertThat(presenter.ticket).isNull();
+    presenter.getRepositoryList("srym");
+
+    verify(view, times(1)).showProgressBar();
+    assertThat(presenter.ticket).isNotNull();
   }
 
   /**
@@ -61,6 +74,11 @@ public class RepoListPresenterTest {
    */
   @Test
   public void refreshRepositoryList() throws Exception {
+    assertThat(presenter.ticket).isNull();
+    presenter.refreshRepositoryList("srym");
+
+    verify(view, never()).showProgressBar();
+    assertThat(presenter.ticket).isNotNull();
   }
 
   /**
@@ -69,6 +87,9 @@ public class RepoListPresenterTest {
    */
   @Test
   public void onDestroyView() throws Exception {
+    presenter.getRepositoryList("srym"); // ticket becomes not null
+    presenter.onDestroyView();
+    verify(ticket, times(1)).cancel(eq(true));
   }
 
   /**
@@ -77,6 +98,10 @@ public class RepoListPresenterTest {
    */
   @Test
   public void onSuccess() throws Exception {
+    presenter.onSuccess(new GetRepositories.OnSuccessGetRepositories(Collections.emptyList()));
+    verify(view, times(1)).hideProgressBar();
+    verify(view, times(1)).showRepositoryList(anyList());
+    verify(mapper, times(1)).convertList(anyList());
   }
 
   /**
@@ -85,6 +110,10 @@ public class RepoListPresenterTest {
    */
   @Test
   public void onError() throws Exception {
+    presenter.onError(new GetRepositories.OnFailureGetRepositories(new Exception("error")));
+    verify(view, times(1)).hideProgressBar();
+    verify(view, times(1)).showError(anyString());
+    verify(view, times(1)).finishActivity();
   }
 
 }
